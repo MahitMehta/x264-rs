@@ -209,8 +209,8 @@ impl Param {
             .into()
             .map_or_else(|| None, |v| Some(CString::new(v).unwrap()));
 
-        let c_tune = t.as_ref().map_or_else(null, |v| v.as_ptr() as *const i8);
-        let c_preset = p.as_ref().map_or_else(null, |v| v.as_ptr() as *const i8);
+        let c_tune = t.as_ref().map_or_else(null, |v| v.as_ptr() as *const u8);
+        let c_preset = p.as_ref().map_or_else(null, |v| v.as_ptr() as *const u8);
 
         match unsafe { x264_param_default_preset(par.as_mut_ptr(), c_preset, c_tune) } {
             -1 => Err("Invalid Argument"),
@@ -223,7 +223,7 @@ impl Param {
 
     pub fn apply_profile(mut self, profile: &str) -> Result<Param, &'static str> {
         let p = CString::new(profile).unwrap();
-        match unsafe { x264_param_apply_profile(&mut self.par, p.as_ptr() as *const i8) } {
+        match unsafe { x264_param_apply_profile(&mut self.par, p.as_ptr() as *const u8) } {
             -1 => Err("Invalid Argument"),
             0 => Ok(self),
             _ => Err("Unexpected"),
@@ -236,8 +236,8 @@ impl Param {
         match unsafe {
             x264_param_parse(
                 &mut self.par,
-                n.as_ptr() as *const i8,
-                v.as_ptr() as *const i8,
+                n.as_ptr() as *const u8,
+                v.as_ptr() as *const u8,
             )
         } {
             -1 => Err("Invalid Argument"),
@@ -245,6 +245,12 @@ impl Param {
             _ => Err("Unexpected"),
         }
     }
+
+    pub fn set_csp(mut self, value: usize) -> Param {
+        self.par.i_csp = value as c_int;
+
+        self
+    }      
 
     pub fn set_dimension(mut self, height: usize, width: usize) -> Param {
         self.par.i_height = height as c_int;
