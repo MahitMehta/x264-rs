@@ -196,6 +196,7 @@ impl Param {
         Param { par }
     }
 
+    #[cfg(target_os = "linux")]
     pub fn default_preset<'a, 'b, Oa, Ob>(preset: Oa, tune: Ob) -> Result<Param, &'static str>
     where
         Oa: Into<Option<&'a str>>,
@@ -221,6 +222,33 @@ impl Param {
         }
     }
 
+    #[cfg(not(target_os = "linux"))]
+    pub fn default_preset<'a, 'b, Oa, Ob>(preset: Oa, tune: Ob) -> Result<Param, &'static str>
+    where
+        Oa: Into<Option<&'a str>>,
+        Ob: Into<Option<&'b str>>,
+    {
+        let mut par: mem::MaybeUninit<x264_param_t> = mem::MaybeUninit::uninit();
+        let t = tune
+            .into()
+            .map_or_else(|| None, |v| Some(CString::new(v).unwrap()));
+        let p = preset
+            .into()
+            .map_or_else(|| None, |v| Some(CString::new(v).unwrap()));
+
+        let c_tune = t.as_ref().map_or_else(null, |v| v.as_ptr() as *const i8);
+        let c_preset = p.as_ref().map_or_else(null, |v| v.as_ptr() as *const i8);
+
+        match unsafe { x264_param_default_preset(par.as_mut_ptr(), c_preset, c_tune) } {
+            -1 => Err("Invalid Argument"),
+            0 => Ok(Param {
+                par: unsafe { par.assume_init() },
+            }),
+            _ => Err("Unexpected"),
+        }
+    }
+
+    #[cfg(target_os = "linux")]
     pub fn apply_profile(mut self, profile: &str) -> Result<Param, &'static str> {
         let p = CString::new(profile).unwrap();
         match unsafe { x264_param_apply_profile(&mut self.par, p.as_ptr() as *const u8) } {
@@ -230,14 +258,42 @@ impl Param {
         }
     }
 
+    #[cfg(not(target_os = "linux"))]
+    pub fn apply_profile(mut self, profile: &str) -> Result<Param, &'static str> {
+        let p = CString::new(profile).unwrap();
+        match unsafe { x264_param_apply_profile(&mut self.par, p.as_ptr() as *const i8) } {
+            -1 => Err("Invalid Argument"),
+            0 => Ok(self),
+            _ => Err("Unexpected"),
+        }
+    }
+
+    #[cfg(target_os = "linux")]
     pub fn param_parse(mut self, name: &str, value: &str) -> Result<Param, &'static str> {
         let n = CString::new(name).unwrap();
         let v = CString::new(value).unwrap();
         match unsafe {
             x264_param_parse(
                 &mut self.par,
-                n.as_ptr() as *const u8,
-                v.as_ptr() as *const u8,
+                n.as_ptr() as *const i8,
+                v.as_ptr() as *const i8,
+            )
+        } {
+            -1 => Err("Invalid Argument"),
+            0 => Ok(self),
+            _ => Err("Unexpected"),
+        }
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    pub fn param_parse(mut self, name: &str, value: &str) -> Result<Param, &'static str> {
+        let n = CString::new(name).unwrap();
+        let v = CString::new(value).unwrap();
+        match unsafe {
+            x264_param_parse(
+                &mut self.par,
+                n.as_ptr() as *const i8,
+                v.as_ptr() as *const i8,
             )
         } {
             -1 => Err("Invalid Argument"),
