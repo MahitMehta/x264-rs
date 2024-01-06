@@ -252,6 +252,31 @@ impl Param {
         self
     }      
 
+    pub fn set_fullrange(mut self, value: usize) -> Param {
+        self.par.vui.b_fullrange = value as c_int;
+
+        self
+    }
+
+    pub fn set_psy_rd(mut self, value: f32) -> Param {
+        self.par.analyse.f_psy_rd = value;
+
+        self
+    }
+
+    pub fn set_psy_trellis(mut self, value: f32) -> Param {
+        self.par.analyse.f_psy_trellis = value;
+        
+
+        self
+    }
+
+    pub fn set_colormatrix(mut self, value: usize) -> Param {
+        self.par.vui.i_colmatrix = value as c_int;
+
+        self
+    }
+
     pub fn set_dimension(mut self, height: usize, width: usize) -> Param {
         self.par.i_height = height as c_int;
         self.par.i_width = width as c_int;
