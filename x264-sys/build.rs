@@ -19,6 +19,8 @@ fn main() {
     let headers = x264.include_paths.clone();
     let buildver = x264.version.split('.').nth(1).unwrap();
 
+    println!("cargo:rustc-link-lib=static=x264");
+
     let mut builder = bindgen::builder()
         .raw_line(format!(
             "pub unsafe fn x264_encoder_open(params: *mut x264_param_t) -> *mut x264_t {{
