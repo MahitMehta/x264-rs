@@ -248,7 +248,7 @@ impl Param {
         }
     }
 
-    #[cfg(target_os = "linux")]
+    #[cfg(all(target_arch = "aarch64", target_os = "linux"))]
     pub fn apply_profile(mut self, profile: &str) -> Result<Param, &'static str> {
         let p = CString::new(profile).unwrap();
         match unsafe { x264_param_apply_profile(&mut self.par, p.as_ptr() as *const u8) } {
@@ -275,8 +275,8 @@ impl Param {
         match unsafe {
             x264_param_parse(
                 &mut self.par,
-                n.as_ptr() as *const i8,
-                v.as_ptr() as *const i8,
+                n.as_ptr() as *const u8,
+                v.as_ptr() as *const u8,
             )
         } {
             -1 => Err("Invalid Argument"),
