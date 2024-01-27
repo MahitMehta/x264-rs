@@ -196,7 +196,7 @@ impl Param {
         Param { par }
     }
 
-    #[cfg(target_os = "linux")]
+    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
     pub fn default_preset<'a, 'b, Oa, Ob>(preset: Oa, tune: Ob) -> Result<Param, &'static str>
     where
         Oa: Into<Option<&'a str>>,
@@ -222,7 +222,7 @@ impl Param {
         }
     }
 
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(any(not(target_os = "linux"), target_arch = "x86_64"))]
     pub fn default_preset<'a, 'b, Oa, Ob>(preset: Oa, tune: Ob) -> Result<Param, &'static str>
     where
         Oa: Into<Option<&'a str>>,
@@ -248,7 +248,7 @@ impl Param {
         }
     }
 
-    #[cfg(all(target_arch = "aarch64", target_os = "linux"))]
+    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
     pub fn apply_profile(mut self, profile: &str) -> Result<Param, &'static str> {
         let p = CString::new(profile).unwrap();
         match unsafe { x264_param_apply_profile(&mut self.par, p.as_ptr() as *const u8) } {
@@ -258,7 +258,7 @@ impl Param {
         }
     }
 
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(any(not(target_os = "linux"), target_arch = "x86_64"))]
     pub fn apply_profile(mut self, profile: &str) -> Result<Param, &'static str> {
         let p = CString::new(profile).unwrap();
         match unsafe { x264_param_apply_profile(&mut self.par, p.as_ptr() as *const i8) } {
@@ -268,7 +268,7 @@ impl Param {
         }
     }
 
-    #[cfg(target_os = "linux")]
+    #[cfg(all(target_os = "linux", target_arch = "aarch64"))]
     pub fn param_parse(mut self, name: &str, value: &str) -> Result<Param, &'static str> {
         let n = CString::new(name).unwrap();
         let v = CString::new(value).unwrap();
@@ -285,7 +285,7 @@ impl Param {
         }
     }
 
-    #[cfg(not(target_os = "linux"))]
+    #[cfg(any(not(target_os = "linux"), target_arch = "x86_64"))]
     pub fn param_parse(mut self, name: &str, value: &str) -> Result<Param, &'static str> {
         let n = CString::new(name).unwrap();
         let v = CString::new(value).unwrap();
